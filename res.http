@@ -1,0 +1,10 @@
+### Root
+GET http://localhost:1198/
+
+
+### Health Check
+GET http://localhost:1198/api/v1/health
+
+
+### Invalid Route
+GET http://localhost:1198/api/v1/not-found
