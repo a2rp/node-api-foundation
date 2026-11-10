@@ -4,9 +4,13 @@ const express = require("express");
 
 const app = express();
 
-const PORT = process.env.PORT || 1198;
+const PORT = Number(process.env.PORT || 1198);
 
-app.use(express.json());
+if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) {
+    throw new Error("PORT must be an integer between 1 and 65535.");
+}
+
+app.use(express.json({ limit: "100kb" }));
 
 app.get("/", (req, res) => {
     res.status(200).json({
@@ -33,11 +37,33 @@ app.use((req, res) => {
 });
 
 app.use((error, req, res, next) => {
-    console.error(error);
+    if (res.headersSent) {
+        return next(error);
+    }
 
-    res.status(500).json({
+    const statusCode = Number(error.status ?? error.statusCode);
+    const isClientError = Number.isInteger(statusCode) && statusCode >= 400 && statusCode < 500;
+    const responseStatus = isClientError ? statusCode : 500;
+
+    if (responseStatus === 500) {
+        if (process.env.NODE_ENV === "production") {
+            console.error("Internal server error.");
+        } else {
+            console.error(error);
+        }
+    }
+
+    const message = responseStatus === 400
+        ? "Invalid request body."
+        : responseStatus === 413
+            ? "Request body too large."
+            : responseStatus === 500
+                ? "Internal server error."
+                : "Request could not be processed.";
+
+    res.status(responseStatus).json({
         success: false,
-        message: "Internal server error.",
+        message,
     });
 });
 

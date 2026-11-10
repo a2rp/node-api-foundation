@@ -6,11 +6,12 @@ A clean and lightweight Node.js and Express API foundation with environment conf
 
 - Node.js and Express
 - Environment-based port configuration
-- JSON request support
+- JSON request support with a 100 KB body limit
 - Root API endpoint
 - Health check endpoint
 - 404 handling
-- Basic server error handling
+- Safe handling for malformed and oversized JSON bodies
+- Validated port configuration
 - Simple local API testing with `res.http`
 
 ## Endpoints
@@ -45,6 +46,8 @@ npm start
 ```text
 1198
 ```
+
+Set `PORT` in the environment to use a different port. It must be an integer from 1 to 65535. JSON request bodies are limited to 100 KB. Malformed JSON returns `400`, oversized bodies return `413`, and unexpected server errors return a generic `500` response.
 
 ## Author
 

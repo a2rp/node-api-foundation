@@ -9,8 +9,8 @@ Its purpose is to demonstrate the minimum clean structure needed for a practical
 The project covers:
 
 - ExpressJS server setup
-- Environment-based configuration
-- JSON request parsing
+- Environment-based configuration with port validation
+- JSON request parsing with a 100 KB limit
 - Root endpoint
 - Health endpoint
 - 404 handling
@@ -113,7 +113,7 @@ Example:
 PORT=1198
 ```
 
-If a port is not supplied, the application can fall back to a default value.
+If a port is not supplied, the application falls back to `1198`. A configured port must be an integer from 1 to 65535; an invalid value stops startup with a clear error.
 
 Using environment variables keeps configuration separate from application logic.
 
@@ -137,13 +137,13 @@ This allows the same codebase to run with different ports without modifying sour
 
 # 7. JSON Request Support
 
-ExpressJS enables JSON request parsing using:
+ExpressJS enables JSON request parsing with a 100 KB limit:
 
 ```js
-app.use(express.json());
+app.use(express.json({ limit: "100kb" }));
 ```
 
-This allows incoming requests to contain JSON bodies.
+This allows incoming requests to contain JSON bodies while limiting how much data the server parses.
 
 Example:
 
@@ -252,7 +252,7 @@ This is better than returning an inconsistent or generic server response.
 
 # 12. Basic Error Handling
 
-The project includes basic error handling so unexpected failures do not return unclear responses.
+The error middleware handles parser errors and unexpected failures centrally. Malformed JSON returns `400`, oversized JSON returns `413`, and unexpected server failures return a generic `500` response. Client errors are not logged with their request body, and production responses do not expose internal error details. If a response has already started, the error is passed to Express's default handler.
 
 The purpose is to establish the concept of centralized error behavior.
 
